@@ -30,6 +30,13 @@
 #include "plugins/ftdidmx/FtdiWidget.h"
 #include "plugins/ftdidmx/FtdiDmxThread.h"
 
+#include "ola/Callback.h"
+#include "ola/thread/SchedulerInterface.h"
+#include "ola/rdm/DiscoveryAgent.h"
+#include "ola/rdm/QueueingRDMController.h"
+#include "ola/rdm/RDMControllerInterface.h"
+#include "ola/rdm/UIDSet.h"
+
 namespace ola {
 namespace plugin {
 namespace ftdidmx {
@@ -51,11 +58,26 @@ class FtdiDmxOutputPort : public ola::BasicOutputPort {
       return m_thread.WriteDMX(buffer);
     }
 
+    // the following are from DiscoverableRDMControllerInterface
+    void SendRDMRequest(const ola::rdm::RDMRequest *request,
+                        ola::rdm::RDMCallback *on_complete) {
+      m_controller->SendRDMRequest(request, on_complete);
+    }
+
+    void RunFullDiscovery(ola::rdm::RDMDiscoveryCallback *callback) {
+      m_controller->RunFullDiscovery(callback);
+    }
+
+    void RunIncrementalDiscovery(ola::rdm::RDMDiscoveryCallback *callback) {
+      m_controller->RunIncrementalDiscovery(callback);
+    }
+
     string Description() const { return m_device->Description(); }
 
   private:
     FtdiWidget *m_device;
     FtdiDmxThread m_thread;
+    ola::rdm::DiscoverableQueueingRDMController *m_controller;
 };
 }  // namespace ftdidmx
 }  // namespace plugin
